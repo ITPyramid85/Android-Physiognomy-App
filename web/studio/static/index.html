@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LuckyStar Admin</title>
+  <style>
+    :root {
+      --bg: #07060b;
+      --panel: #121018;
+      --panel-2: #1b1724;
+      --line: #2c2638;
+      --text: #f6f1e6;
+      --muted: #a89bb8;
+      --gold: #c9a449;
+      --gold-ink: #2a210c;
+      --face: #d7b56d;
+      --palm: #8fb9a8;
+      --danger: #e07a7a;
+      --ok: #8fb9a8;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      grid-template-columns: 220px 1fr;
+    }
+    aside.nav {
+      background: #0d0b12;
+      border-right: 1px solid var(--line);
+      padding: 18px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .brand { display: flex; gap: 10px; align-items: center; padding: 4px 8px 16px; }
+    .mark {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(160deg, #e6c877, #8e6f2c);
+      color: var(--gold-ink); display: grid; place-items: center; font-weight: 800;
+    }
+    .brand strong { display: block; font-size: 14px; }
+    .brand span { color: var(--muted); font-size: 12px; }
+    aside.nav button {
+      text-align: left; background: transparent; color: var(--muted);
+      border: 0; border-radius: 10px; padding: 10px 12px; cursor: pointer; font-size: 14px;
+    }
+    aside.nav button.active, aside.nav button:hover { background: var(--panel-2); color: var(--text); }
+    aside.nav button.active { box-shadow: inset 3px 0 0 var(--gold); }
+    .workspace { min-width: 0; display: grid; grid-template-rows: 64px 1fr; }
+    header.top {
+      display: flex; align-items: center; gap: 12px; padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    header.top h1 { margin: 0; font-size: 18px; font-weight: 650; }
+    header.top input, header.top select {
+      background: var(--panel); color: var(--text); border: 1px solid var(--line);
+      border-radius: 10px; padding: 8px 12px; font-size: 14px;
+    }
+    header.top input { width: min(360px, 40vw); }
+    .grow { flex: 1; }
+    main { overflow: auto; padding: 18px 20px 32px; }
+    .cards { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); gap: 12px; }
+    .card, .panel {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    }
+    .card { padding: 14px; }
+    .card span { color: var(--muted); font-size: 12px; }
+    .card b { display: block; margin-top: 8px; font-size: 26px; font-weight: 650; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+    .filters button, .ghost, .danger {
+      border-radius: 999px; border: 1px solid var(--line); background: transparent;
+      color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 13px;
+    }
+    .filters button.on { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+    .panel { overflow: auto; }
+    table { width: max-content; min-width: 100%; border-collapse: collapse; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; vertical-align: top; }
+    th { white-space: nowrap; }
+    td { max-width: 360px; }
+    th { color: var(--muted); font-weight: 650; background: #16131e; position: sticky; top: 0; }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover td { background: #1c1826; }
+    .muted { color: var(--muted); }
+    .badge {
+      display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 12px;
+      border: 1px solid var(--line);
+    }
+    .badge.face { color: var(--face); }
+    .badge.palm { color: var(--palm); }
+    .empty { padding: 42px 16px; text-align: center; color: var(--muted); }
+    .pager { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+    .section-title { margin: 22px 0 10px; font-size: 14px; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .shot { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: pointer; }
+    .frame {
+      height: 132px; display: grid; place-items: center; font-size: 28px; font-weight: 700;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(230, 200, 119, .28), transparent 55%),
+        linear-gradient(180deg, #241c33, #120f18);
+    }
+    .frame.palm { background:
+        radial-gradient(circle at 50% 30%, rgba(143, 185, 168, .28), transparent 55%),
+        linear-gradient(180deg, #18241f, #101410); }
+    .shot .meta, .bucket { padding: 12px; }
+    .shot .meta div { overflow-wrap: anywhere; }
+    .shot .meta strong, .bucket strong { display: block; margin-bottom: 4px; }
+    .ok { color: var(--ok); }
+    .miss { color: var(--danger); }
+    .drawer-back {
+      position: fixed; inset: 0 0 0 220px; background: rgba(0,0,0,.35);
+    }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw);
+      background: #100e16; border-left: 1px solid var(--line); overflow: auto; padding: 20px;
+    }
+    .drawer h2 { margin: 0 0 6px; font-size: 20px; }
+    .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; margin: 16px 0; font-size: 13px; }
+    .kv span { color: var(--muted); }
+    .body {
+      white-space: pre-wrap; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 12px; padding: 12px; line-height: 1.55; font-size: 14px;
+    }
+    .thread { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .bubble { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--panel); }
+    .bubble .who { color: var(--gold); font-size: 12px; margin-bottom: 4px; }
+    .actions { display: flex; gap: 8px; margin-top: 16px; }
+    .danger { color: var(--danger); border-color: #5a3030; }
+    .hint { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+    @media (max-width: 1100px) {
+      .cards { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 800px) {
+      body { grid-template-columns: 1fr; }
+      aside.nav { flex-direction: row; overflow: auto; }
+      .drawer-back { left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="nav">
+    <div class="brand"><div class="mark">L</div><div><strong>LuckyStar</strong><span data-i18n="subtitle"></span></div></div>
+    <button data-view="overview" class="active" data-i18n="nav_overview"></button>
+    <button data-view="users" data-i18n="nav_users"></button>
+    <button data-view="activity" data-i18n="nav_activity"></button>
+    <button data-view="results" data-i18n="nav_results"></button>
+    <button data-view="images" data-i18n="nav_images"></button>
+    <button data-view="consultations" data-i18n="nav_consultations"></button>
+  </aside>
+  <div class="workspace">
+    <header class="top">
+      <h1 id="title"></h1>
+      <div class="grow"></div>
+      <input id="q" type="search" />
+      <select id="lang">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="zh">中文</option>
+      </select>
+    </header>
+    <main id="main"></main>
+  </div>
+  <script>
+    const I18N = {
+      ko: {
+        subtitle: "운영 관리", title_overview: "개요", title_users: "사용자", title_activity: "활동 로그",
+        title_results: "분석 결과", title_images: "손·얼굴 이미지", title_consultations: "상담",
+        nav_overview: "개요", nav_users: "사용자", nav_activity: "활동 로그", nav_results: "분석 결과",
+        nav_images: "손·얼굴 이미지", nav_consultations: "상담",
+        search: "이름, 이메일, 결과 검색",
+        all: "전체", face: "관상", palm: "손금", reading: "분석 저장", consultation: "상담 시작", message: "상담 메시지",
+        stored: "파일 있음", missing: "파일 없음",
+        stat_users: "사용자", stat_face: "관상 결과", stat_palm: "손금 결과", stat_images: "보관된 이미지",
+        stat_consultations: "상담", stat_messages: "상담 메시지", recent: "최근 활동",
+        empty_users: "가입한 사용자가 없습니다.",
+        empty_activity: "아직 분석 저장이나 상담 기록이 없습니다.",
+        empty_results: "저장된 관상·손금 결과가 없습니다. 앱에서 저장한 기록만 여기에 남습니다.",
+        empty_images: "보관된 손·얼굴 이미지가 없습니다. 사진은 사용자가 저장할 때만 올라옵니다.",
+        empty_consultations: "상담 세션이 없습니다.",
+        empty_messages: "이 상담에 메시지가 없습니다.",
+        empty_orphans: "결과에 연결되지 않은 파일이 없습니다.",
+        user: "사용자", email: "이메일", locale: "언어", joined: "가입", last: "마지막 분석",
+        when: "시각", kind: "종류", subject: "대상", model: "모델", excerpt: "내용",
+        consultations: "상담", messages: "메시지", open: "열기", delete: "삭제", close: "닫기",
+        prev: "이전", next: "다음", count: "{n}건",
+        confirm_user: "{name} 사용자와 그 분석·상담 기록을 삭제할까요?",
+        confirm_reading: "{name} 분석 결과와 연결된 상담을 삭제할까요?",
+        confirm_consultation: "{name} 상담과 메시지를 삭제할까요?",
+        confirm_object: "{name} 이미지 보관 기록을 삭제할까요?",
+        file_stored: "Storage에 보관됨", file_missing: "이미지 파일 없음",
+        no_path: "저장 경로 없음", orphan_title: "결과에 연결되지 않은 파일",
+        bucket_private: "비공개", bucket_public: "공개", result_body: "저장된 결과",
+        linked: "이 결과로 연 상담", thread: "대화", path: "보관 경로", stored_at: "보관 시각",
+        tokens: "토큰", unknown: "이름 없음", untitled: "제목 없음",
+        role_user: "사용자", role_assistant: "상담", features: "상담에 저장된 특징",
+        limit: "용량 제한", mime: "허용 형식", owner: "소유자",
+        load_error: "자료를 불러오지 못했습니다."
+      },
+      en: {
+        subtitle: "Operations", title_overview: "Overview", title_users: "Users", title_activity: "Activity",
+        title_results: "Saved readings", title_images: "Hand and face images", title_consultations: "Consultations",
+        nav_overview: "Overview", nav_users: "Users", nav_activity: "Activity", nav_results: "Readings",
+        nav_images: "Images", nav_consultations: "Consultations",
+        search: "Search name, email, or result",
+        all: "All", face: "Face", palm: "Palm", reading: "Saved reading", consultation: "Consultation opened", message: "Consultation message",
+        stored: "File stored", missing: "No file",
+        stat_users: "Users", stat_face: "Face readings", stat_palm: "Palm readings", stat_images: "Stored images",
+        stat_consultations: "Consultations", stat_messages: "Messages", recent: "Recent activity",
+        empty_users: "No users have signed up.",
+        empty_activity: "No saved readings or consultations yet.",
+        empty_results: "No face or palm readings are stored. Only readings the app saves appear here.",
+        empty_images: "No hand or face images are stored. A photo is uploaded only when the user saves.",
+        empty_consultations: "No consultation sessions.",
+        empty_messages: "This consultation has no messages.",
+        empty_orphans: "No files are detached from a reading.",
+        user: "User", email: "Email", locale: "Language", joined: "Joined", last: "Last reading",
+        when: "When", kind: "Kind", subject: "Subject", model: "Model", excerpt: "Content",
+        consultations: "Consultations", messages: "Messages", open: "Open", delete: "Delete", close: "Close",
+        prev: "Previous", next: "Next", count: "{n}",
+        confirm_user: "Delete {name} and their readings and consultations?",
+        confirm_reading: "Delete the reading for {name} and its consultations?",
+        confirm_consultation: "Delete the consultation {name} and its messages?",
+        confirm_object: "Delete the stored image record {name}?",
+        file_stored: "Stored in Storage", file_missing: "No image file",
+        no_path: "No storage path", orphan_title: "Files not linked to a reading",
+        bucket_private: "Private", bucket_public: "Public", result_body: "Saved reading",
+        linked: "Consultations opened from this reading", thread: "Conversation", path: "Storage path", stored_at: "Stored at",
+        tokens: "Tokens", unknown: "Unnamed", untitled: "Untitled",
+        role_user: "User", role_assistant: "Advisor", features: "Features saved with the consultation",
+        limit: "Size limit", mime: "Allowed types", owner: "Owner",
+        load_error: "Could not load the records."
+      },
+      ja: {
+        subtitle: "運用管理", title_overview: "概要", title_users: "ユーザー", title_activity: "活動ログ",
+        title_results: "鑑定結果", title_images: "手相・顔画像", title_consultations: "相談",
+        nav_overview: "概要", nav_users: "ユーザー", nav_activity: "活動ログ", nav_results: "鑑定結果",
+        nav_images: "画像", nav_consultations: "相談",
+        search: "名前、メール、結果を検索",
+        all: "すべて", face: "観相", palm: "手相", reading: "鑑定の保存", consultation: "相談の開始", message: "相談メッセージ",
+        stored: "ファイルあり", missing: "ファイルなし",
+        stat_users: "ユーザー", stat_face: "観相結果", stat_palm: "手相結果", stat_images: "保管画像",
+        stat_consultations: "相談", stat_messages: "メッセージ", recent: "最近の活動",
+        empty_users: "登録ユーザーはいません。",
+        empty_activity: "保存された鑑定や相談はまだありません。",
+        empty_results: "保存された観相・手相結果はありません。アプリで保存した記録だけが残ります。",
+        empty_images: "保管された手・顔画像はありません。写真はユーザーが保存したときだけ上がります。",
+        empty_consultations: "相談セッションはありません。",
+        empty_messages: "この相談にメッセージはありません。",
+        empty_orphans: "結果に紐づかないファイルはありません。",
+        user: "ユーザー", email: "メール", locale: "言語", joined: "登録", last: "最終鑑定",
+        when: "日時", kind: "種類", subject: "対象", model: "モデル", excerpt: "内容",
+        consultations: "相談", messages: "メッセージ", open: "開く", delete: "削除", close: "閉じる",
+        prev: "前へ", next: "次へ", count: "{n}件",
+        confirm_user: "{name} と、その鑑定・相談記録を削除しますか？",
+        confirm_reading: "{name} の鑑定結果と関連する相談を削除しますか？",
+        confirm_consultation: "{name} の相談とメッセージを削除しますか？",
+        confirm_object: "{name} の画像保管記録を削除しますか？",
+        file_stored: "Storageに保管済み", file_missing: "画像ファイルなし",
+        no_path: "保存パスなし", orphan_title: "結果に紐づかないファイル",
+        bucket_private: "非公開", bucket_public: "公開", result_body: "保存された結果",
+        linked: "この結果から開いた相談", thread: "会話", path: "保管パス", stored_at: "保管日時",
+        tokens: "トークン", unknown: "名前なし", untitled: "無題",
+        role_user: "ユーザー", role_assistant: "相談", features: "相談に保存された特徴",
+        limit: "容量制限", mime: "許可形式", owner: "所有者",
+        load_error: "記録を読み込めませんでした。"
+      },
+      zh: {
+        subtitle: "运营管理", title_overview: "概览", title_users: "用户", title_activity: "活动记录",
+        title_results: "分析结果", title_images: "手相与面相图片", title_consultations: "咨询",
+        nav_overview: "概览", nav_users: "用户", nav_activity: "活动记录", nav_results: "分析结果",
+        nav_images: "图片", nav_consultations: "咨询",
+        search: "搜索姓名、邮箱或结果",
+        all: "全部", face: "面相", palm: "手相", reading: "保存分析", consultation: "开始咨询", message: "咨询消息",
+        stored: "已有文件", missing: "无文件",
+        stat_users: "用户", stat_face: "面相结果", stat_palm: "手相结果", stat_images: "已保存图片",
+        stat_consultations: "咨询", stat_messages: "咨询消息", recent: "最近活动",
+        empty_users: "还没有注册用户。",
+        empty_activity: "还没有保存的分析或咨询记录。",
+        empty_results: "没有保存的面相或手相结果。只有应用里保存的记录会出现在这里。",
+        empty_images: "没有保存的手部或面部图片。只有用户执行保存时才会上传照片。",
+        empty_consultations: "没有咨询会话。",
+        empty_messages: "这次咨询没有消息。",
+        empty_orphans: "没有未关联到结果的文件。",
+        user: "用户", email: "邮箱", locale: "语言", joined: "注册", last: "最近分析",
+        when: "时间", kind: "类型", subject: "对象", model: "模型", excerpt: "内容",
+        consultations: "咨询", messages: "消息", open: "打开", delete: "删除", close: "关闭",
+        prev: "上一页", next: "下一页", count: "{n} 条",
+        confirm_user: "删除用户 {name} 及其分析和咨询记录？",
+        confirm_reading: "删除 {name} 的分析结果以及关联咨询？",
+        confirm_consultation: "删除咨询 {name} 及其消息？",
+        confirm_object: "删除图片保存记录 {name}？",
+        file_stored: "已保存在 Storage", file_missing: "没有图片文件",
+        no_path: "没有保存路径", orphan_title: "未关联到结果的文件",
+        bucket_private: "不公开", bucket_public: "公开", result_body: "已保存的结果",
+        linked: "由此结果发起的咨询", thread: "对话", path: "保存路径", stored_at: "保存时间",
+        tokens: "令牌", unknown: "未命名", untitled: "无标题",
+        role_user: "用户", role_assistant: "咨询", features: "随咨询保存的特征",
+        limit: "大小限制", mime: "允许格式", owner: "所有者",
+        load_error: "无法加载记录。"
+      }
+    };
+
+    const state = {
+      lang: localStorage.getItem("luckystar_admin_lang") || "ko",
+      view: "overview",
+      q: "",
+      filter: "",
+      offset: 0,
+      limit: 30
+    };
+
+    const main = document.getElementById("main");
+    const title = document.getElementById("title");
+    const search = document.getElementById("q");
+    const langSelect = document.getElementById("lang");
+
+    function t(key) { return (I18N[state.lang] || I18N.ko)[key] || key; }
+    function fmt(iso) {
+      if (!iso) return "—";
+      const map = { ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" };
+      return new Intl.DateTimeFormat(map[state.lang], { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+    }
+    function person(row) { return row.display_name || row.email || t("unknown"); }
+    function typeLabel(type) { return type === "palm" ? t("palm") : type === "face" ? t("face") : (type || "—"); }
+    function kindLabel(kind) { return t(kind === "reading" || kind === "consultation" || kind === "message" ? kind : "kind"); }
+    function badge(type) {
+      const span = document.createElement("span");
+      span.className = "badge " + (type === "palm" ? "palm" : "face");
+      span.textContent = typeLabel(type);
+      return span;
+    }
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+    function applyChrome() {
+      document.documentElement.lang = state.lang === "zh" ? "zh-CN" : state.lang;
+      document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+      title.textContent = t("title_" + state.view);
+      search.placeholder = t("search");
+      search.hidden = state.view === "overview" || state.view === "images";
+      langSelect.value = state.lang;
+    }
+    async function api(path, options) {
+      const res = await fetch(path, options);
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "load_error");
+      return body;
+    }
+    function qs(extra) {
+      const params = new URLSearchParams();
+      if (state.q) params.set("q", state.q);
+      if (state.filter) params.set(extra.filterKey || "type", state.filter);
+      if (extra.kind) params.set("kind", state.filter);
+      params.set("limit", String(state.limit));
+      params.set("offset", String(state.offset));
+      return params.toString();
+    }
+    function empty(key) { main.appendChild(el("div", "empty", t(key))); }
+    function table(headers, rows, onClick) {
+      const wrap = el("div", "panel");
+      const grid = document.createElement("table");
+      const head = document.createElement("tr");
+      headers.forEach((header) => head.appendChild(el("th", "", header)));
+      const thead = document.createElement("thead");
+      thead.appendChild(head);
+      const tbody = document.createElement("tbody");
+      rows.forEach((cells) => {
+        const tr = document.createElement("tr");
+        if (onClick) {
+          tr.className = "clickable";
+          tr.setAttribute("role", "button");
+          tr.tabIndex = 0;
+        }
+        cells.forEach((cell) => {
+          const td = document.createElement("td");
+          if (cell instanceof Node) td.appendChild(cell);
+          else td.textContent = cell ?? "—";
+          tr.appendChild(td);
+        });
+        if (onClick) tr.onclick = () => onClick(tr);
+        tbody.appendChild(tr);
+      });
+      grid.append(thead, tbody);
+      wrap.appendChild(grid);
+      return wrap;
+    }
+    function pager(total) {
+      const bar = el("div", "pager");
+      const prev = el("button", "ghost", t("prev"));
+      const next = el("button", "ghost", t("next"));
+      prev.disabled = state.offset <= 0;
+      next.disabled = state.offset + state.limit >= total;
+      prev.onclick = () => { state.offset = Math.max(0, state.offset - state.limit); render(); };
+      next.onclick = () => { state.offset += state.limit; render(); };
+      bar.append(prev, el("span", "muted", t("count").replace("{n}", String(total))), next);
+      return bar;
+    }
+    function filters(options) {
+      const bar = el("div", "filters");
+      options.forEach(([value, label]) => {
+        const button = el("button", state.filter === value ? "on" : "", label);
+        button.onclick = () => { state.filter = value; state.offset = 0; render(); };
+        bar.appendChild(button);
+      });
+      main.appendChild(bar);
+    }
+    function closeDrawer() {
+      document.getElementById("drawer-back")?.remove();
+    }
+    function openDrawer(node) {
+      closeDrawer();
+      const back = el("div", "drawer-back");
+      back.id = "drawer-back";
+      back.onclick = (event) => { if (event.target === back) closeDrawer(); };
+      const drawer = el("div", "drawer");
+      drawer.onclick = (event) => event.stopPropagation();
+      const close = el("button", "ghost", t("close"));
+      close.onclick = closeDrawer;
+      drawer.append(close, node);
+      back.appendChild(drawer);
+      document.body.appendChild(back);
+    }
+    function kv(pairs) {
+      const grid = el("div", "kv");
+      pairs.forEach(([label, value]) => {
+        grid.append(el("span", "", label), el("div", "", value || "—"));
+      });
+      return grid;
+    }
+    async function removeRecord(kind, id, name) {
+      const message = t("confirm_" + kind).replace("{name}", name || id);
+      if (!window.confirm(message)) return;
+      await api("/api/admin/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, id })
+      });
+      closeDrawer();
+      render();
+    }
+    function deleteButton(kind, id, name) {
+      const button = el("button", "danger", t("delete"));
+      button.onclick = () => removeRecord(kind, id, name);
+      return button;
+    }
+
+    async function showUser(id) {
+      const data = await api("/api/admin/users?id=" + encodeURIComponent(id));
+      const user = data.user;
+      const box = el("div");
+      box.append(el("h2", "", person(user)));
+      box.append(kv([
+        [t("email"), user.email || "—"],
+        [t("locale"), user.locale || "—"],
+        [t("joined"), fmt(user.created_at)],
+        [t("stat_face"), String(user.face_count)],
+        [t("stat_palm"), String(user.palm_count)],
+        [t("consultations"), String(user.consultation_count)],
+        [t("last"), fmt(user.last_reading_at)]
+      ]));
+      box.append(el("h3", "section-title", t("title_results")));
+      if (!data.readings.length) box.append(el("div", "empty", t("empty_results")));
+      else data.readings.forEach((row) => {
+        const line = el("div", "bubble");
+        line.append(badge(row.type), document.createTextNode(" " + (row.subject_name || t("unknown")) + " · " + fmt(row.created_at)));
+        line.append(el("div", "muted", row.excerpt || ""));
+        line.style.cursor = "pointer";
+        line.onclick = () => showReading(row.id);
+        box.append(line);
+      });
+      const actions = el("div", "actions");
+      actions.appendChild(deleteButton("user", user.id, person(user)));
+      box.append(actions);
+      openDrawer(box);
+    }
+
+    async function showReading(id) {
+      const data = await api("/api/admin/readings?id=" + encodeURIComponent(id));
+      const row = data.reading;
+      const box = el("div");
+      box.append(el("h2", "", row.subject_name || t("unknown")));
+      box.append(badge(row.type));
+      box.append(kv([
+        [t("user"), person(row)],
+        [t("model"), row.model_used || "—"],
+        [t("locale"), row.locale || "—"],
+        [t("when"), fmt(row.created_at)],
+        [t("path"), row.image_path || t("no_path")],
+        [t("stored_at"), row.object_id ? fmt(row.stored_at) : t("file_missing")]
+      ]));
+      box.append(el("h3", "section-title", t("result_body")));
+      box.append(el("div", "body", row.result_text || ""));
+      box.append(el("h3", "section-title", t("linked")));
+      if (!data.consultations.length) box.append(el("div", "empty", t("empty_consultations")));
+      else data.consultations.forEach((item) => {
+        const line = el("div", "bubble");
+        line.style.cursor = "pointer";
+        line.textContent = (item.title || t("untitled")) + " · " + fmt(item.created_at);
+        line.onclick = () => showConsultation(item.id);
+        box.append(line);
+      });
+      const actions = el("div", "actions");
+      actions.appendChild(deleteButton("reading", row.id, row.subject_name || person(row)));
+      box.append(actions);
+      openDrawer(box);
+    }
+
+    async function showConsultation(id) {
+      const data = await api("/api/admin/consultations?id=" + encodeURIComponent(id));
+      const row = data.consultation;
+      const box = el("div");
+      box.append(el("h2", "", row.title || t("untitled")));
+      box.append(badge(row.analysis_type));
+      box.append(kv([
+        [t("user"), person(row)],
+        [t("subject"), row.subject_name || "—"],
+        [t("model"), row.model_used || "—"],
+        [t("locale"), row.locale || "—"],
+        [t("when"), fmt(row.created_at)],
+        [t("messages"), String(row.message_count)]
+      ]));
+      box.append(el("h3", "section-title", t("result_body")));
+      box.append(el("div", "body", row.context_summary || ""));
+      if (row.context_features && Object.keys(row.context_features).length) {
+        box.append(el("h3", "section-title", t("features")));
+        box.append(el("div", "body", JSON.stringify(row.context_features, null, 2)));
+      }
+      box.append(el("h3", "section-title", t("thread")));
+      const thread = el("div", "thread");
+      if (!data.messages.length) thread.append(el("div", "empty", t("empty_messages")));
+      data.messages.forEach((message) => {
+        const bubble = el("div", "bubble");
+        const who = message.role === "assistant" ? t("role_assistant") : t("role_user");
+        bubble.append(el("div", "who", who + " · " + fmt(message.created_at) + (message.token_count != null ? " · " + message.token_count + " " + t("tokens") : "")));
+        bubble.append(el("div", "", message.content || ""));
+        thread.append(bubble);
+      });
+      box.append(thread);
+      const actions = el("div", "actions");
+      actions.appendChild(deleteButton("consultation", row.id, row.title || row.subject_name || person(row)));
+      if (row.analysis_id) {
+        const openReading = el("button", "ghost", t("title_results"));
+        openReading.onclick = () => showReading(row.analysis_id);
+        actions.appendChild(openReading);
+      }
+      box.append(actions);
+      openDrawer(box);
+    }
+
+    async function renderOverview() {
+      const data = await api("/api/admin/summary");
+      const s = data.summary;
+      const cards = el("div", "cards");
+      [
+        ["stat_users", s.users], ["stat_face", s.face_readings], ["stat_palm", s.palm_readings],
+        ["stat_images", s.stored_files], ["stat_consultations", s.consultations], ["stat_messages", s.messages]
+      ].forEach(([key, value]) => {
+        const card = el("div", "card");
+        card.append(el("span", "", t(key)), el("b", "", String(value)));
+        cards.append(card);
+      });
+      main.append(cards, el("h2", "section-title", t("recent")));
+      if (!data.activity.length) { empty("empty_activity"); return; }
+      main.append(table(
+        [t("when"), t("kind"), t("user"), t("excerpt")],
+        data.activity.map((row) => [fmt(row.created_at), kindLabel(row.kind), person(row), row.excerpt || row.title || "—"])
+      ));
+    }
+
+    async function renderUsers() {
+      const data = await api("/api/admin/users?" + qs({}));
+      if (!data.items.length) { empty("empty_users"); return; }
+      const rows = data.items.map((row) => {
+        const cells = [person(row), row.email || "—", row.locale || "—", String(row.face_count), String(row.palm_count), String(row.consultation_count), fmt(row.created_at)];
+        cells.row = row;
+        return cells;
+      });
+      main.append(table(
+        [t("user"), t("email"), t("locale"), t("face"), t("palm"), t("consultations"), t("joined")],
+        rows,
+        (tr) => showUser(rows[tr.sectionRowIndex].row.id)
+      ));
+      main.append(pager(data.total));
+    }
+
+    async function renderActivity() {
+      filters([["", t("all")], ["reading", t("reading")], ["consultation", t("consultation")], ["message", t("message")]]);
+      const params = new URLSearchParams({ kind: state.filter, limit: String(state.limit), offset: String(state.offset) });
+      const data = await api("/api/admin/activity?" + params.toString());
+      if (!data.items.length) { empty("empty_activity"); return; }
+      const rows = data.items.map((row) => {
+        const cells = [fmt(row.created_at), kindLabel(row.kind), badge(row.subtype === "palm" || row.subtype === "face" ? row.subtype : "face"), person(row), row.title || "—", row.excerpt || "—"];
+        if (row.subtype !== "face" && row.subtype !== "palm") cells[2] = row.subtype || "—";
+        cells.row = row;
+        return cells;
+      });
+      main.append(table(
+        [t("when"), t("kind"), t("subject"), t("user"), t("subject"), t("excerpt")],
+        rows,
+        (tr) => {
+          const row = rows[tr.sectionRowIndex].row;
+          if (row.kind === "reading") showReading(row.id);
+          else if (row.kind === "consultation") showConsultation(row.id);
+          else if (row.user_id) showUser(row.user_id);
+        }
+      ));
+      main.append(pager(data.total));
+    }
+
+    async function renderResults() {
+      filters([["", t("all")], ["face", t("face")], ["palm", t("palm")]]);
+      const data = await api("/api/admin/readings?" + qs({}));
+      if (!data.items.length) { empty("empty_results"); return; }
+      const rows = data.items.map((row) => {
+        const cells = [fmt(row.created_at), badge(row.type), row.subject_name || t("unknown"), person(row), row.model_used || "—", row.locale || "—", row.excerpt || "—"];
+        cells.row = row;
+        return cells;
+      });
+      main.append(table(
+        [t("when"), t("kind"), t("subject"), t("user"), t("model"), t("locale"), t("excerpt")],
+        rows,
+        (tr) => showReading(rows[tr.sectionRowIndex].row.id)
+      ));
+      main.append(pager(data.total));
+    }
+
+    async function renderImages() {
+      filters([["", t("all")], ["face", t("face")], ["palm", t("palm")], ["stored", t("stored")], ["missing", t("missing")]]);
+      const data = await api("/api/admin/images?type=" + encodeURIComponent(state.filter));
+      if (data.bucket) {
+        const bucket = el("div", "bucket panel");
+        const title = el("strong", "", data.bucket.name);
+        const meta = el("div", "muted", [
+          data.bucket.public ? t("bucket_public") : t("bucket_private"),
+          t("limit") + " " + Math.round(data.bucket.file_size_limit / 1048576) + "MB",
+          t("mime") + " " + (data.bucket.allowed_mime_types || []).join(", ")
+        ].join(" · "));
+        bucket.append(title, meta);
+        main.append(bucket);
+      }
+      if (!data.items.length) empty("empty_images");
+      else {
+        const gallery = el("div", "gallery");
+        data.items.forEach((row) => {
+          const card = el("article", "shot");
+          card.setAttribute("role", "button");
+          card.tabIndex = 0;
+          const frame = el("div", "frame" + (row.type === "palm" ? " palm" : ""), typeLabel(row.type));
+          const meta = el("div", "meta");
+          meta.append(el("strong", "", row.subject_name || t("unknown")));
+          meta.append(el("div", "muted", person(row) + " · " + fmt(row.created_at)));
+          meta.append(el("div", "", row.image_path || t("no_path")));
+          meta.append(el("div", row.has_file ? "ok" : "miss", row.has_file ? t("file_stored") : t("file_missing")));
+          card.append(frame, meta);
+          card.onclick = () => showReading(row.reading_id);
+          gallery.append(card);
+        });
+        main.append(gallery);
+      }
+      main.append(el("h2", "section-title", t("orphan_title")));
+      if (!data.orphans.length) empty("empty_orphans");
+      else {
+        const rows = data.orphans.map((row) => {
+          const cells = [row.name, person(row), fmt(row.created_at)];
+          cells.row = row;
+          return cells;
+        });
+        main.append(table([t("path"), t("owner"), t("stored_at")], rows, (tr) => {
+          const row = rows[tr.sectionRowIndex].row;
+          removeRecord("object", row.id, row.name);
+        }));
+      }
+    }
+
+    async function renderConsultations() {
+      filters([["", t("all")], ["face", t("face")], ["palm", t("palm")]]);
+      const data = await api("/api/admin/consultations?" + qs({}));
+      if (!data.items.length) { empty("empty_consultations"); return; }
+      const rows = data.items.map((row) => {
+        const cells = [fmt(row.last_message_at || row.created_at), badge(row.analysis_type), row.title || t("untitled"), row.subject_name || "—", person(row), String(row.message_count), row.model_used || "—"];
+        cells.row = row;
+        return cells;
+      });
+      main.append(table(
+        [t("when"), t("kind"), t("subject"), t("subject"), t("user"), t("messages"), t("model")],
+        rows,
+        (tr) => showConsultation(rows[tr.sectionRowIndex].row.id)
+      ));
+      main.append(pager(data.total));
+    }
+
+    const views = {
+      overview: renderOverview,
+      users: renderUsers,
+      activity: renderActivity,
+      results: renderResults,
+      images: renderImages,
+      consultations: renderConsultations
+    };
+
+    async function render() {
+      applyChrome();
+      main.replaceChildren();
+      try { await views[state.view](); }
+      catch (error) { main.append(el("div", "empty", t("load_error"))); }
+    }
+
+    document.querySelectorAll("aside.nav button").forEach((button) => {
+      button.onclick = () => {
+        document.querySelectorAll("aside.nav button").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        state.view = button.dataset.view;
+        state.filter = "";
+        state.offset = 0;
+        state.q = "";
+        search.value = "";
+        closeDrawer();
+        render();
+      };
+    });
+    let timer = 0;
+    search.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { state.q = search.value.trim(); state.offset = 0; render(); }, 250);
+    });
+    langSelect.onchange = () => {
+      state.lang = langSelect.value;
+      localStorage.setItem("luckystar_admin_lang", state.lang);
+      render();
+    };
+    langSelect.value = state.lang;
+    render();
+  </script>
+</body>
+</html>
