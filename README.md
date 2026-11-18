@@ -2,7 +2,7 @@
 
 <br/>
 
-# ✦ Aura
+# ✦ LuckyStar
 
 **결이 흐르는 자리, 읽어드립니다**
 
@@ -22,9 +22,9 @@
 
 ---
 
-## What is Aura?
+## What is LuckyStar?
 
-Aura is a privacy-first Android app that reads your **face** (관상, physiognomy) and **palm** (손금, palmistry) entirely on-device.
+LuckyStar is a privacy-first Android app that reads your **face** (관상, physiognomy) and **palm** (손금, palmistry) entirely on-device.
 
 Point your camera — **Google ML Kit** maps 468 facial landmarks or 21 hand keypoints in real time, then **Gemma 4** streams a 1,000+ character reading without a single byte leaving your phone.
 
@@ -146,7 +146,7 @@ Every analysis runs on the user's GPU/NPU. There are no cloud GPU calls regardle
 |---|---|---|
 | 👁️ | **AI Face Reading** | 468-point ML Kit mesh → 17 physiognomy indices → Gemma 4 |
 | 🤚 | **AI Palm Reading** | 21-point HandLandmarker → line detection → Gemma 4 |
-| 💬 | **AI Consultation** | Post-reading chat with Aura (Gemma 4 session) |
+| 💬 | **AI Consultation** | Post-reading chat with LuckyStar (Gemma 4 session) |
 | 📜 | **Reading History** | Save & revisit past readings — face and palm, filterable |
 | 🌐 | **4 Languages** | Korean · English · Japanese · Chinese |
 | 🔒 | **Zero Data Leakage** | Vision AI + LLM run fully on-device |
@@ -234,7 +234,7 @@ Apply the schema from `docs/spec.md §9` to your Supabase project, then deploy t
 
 ### 4. Model
 
-On first launch Aura will download the appropriate Gemma 4 model automatically.  
+On first launch LuckyStar will download the appropriate Gemma 4 model automatically.  
 Alternatively, place a `.litertlm` file in `/sdcard/Download/` — the app will detect and register it.
 
 | Model | Size | When selected |
@@ -334,6 +334,6 @@ MIT © 2025 taoist
 
 <div align="center">
 
-*Aura reads the lines that tell your story.*
+*LuckyStar reads the lines that tell your story.*
 
 </div>
